@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: student-website
+    env: node
+    plan: free
+    buildCommand: npm run build:render
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: NPM_VERSION
+        value: 10.8.2
+      - key: CI
+        value: false
+      - key: GENERATE_SOURCEMAP
+        value: false
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=2048
+      - key: NODE_ENV
+        value: production
+      - key: INLINE_RUNTIME_CHUNK
+        value: false
+      - key: REACT_APP_DISABLE_ESLINT_PLUGIN
+        value: true
+      - key: ESLINT_NO_DEV_ERRORS
+        value: true
+      - key: TSC_COMPILE_ON_ERROR
+        value: true
