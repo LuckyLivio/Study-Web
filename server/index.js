@@ -21,7 +21,9 @@ app.use(cors({
     process.env.CLIENT_URL || 'http://localhost:3001',
     'http://localhost:3005',
     'http://localhost:3006',
-    'http://localhost:3007'
+    'http://localhost:3007',
+    'http://livio.wang',
+    'https://livio.wang'
   ],
   credentials: true
 }));
@@ -87,7 +89,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`服务器运行在端口 ${PORT}`);
 });
 

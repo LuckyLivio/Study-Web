@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Portfolio = require('../models/Portfolio');
 const { upload, handleUploadError, cleanupFiles, deleteFile, getFileUrl } = require('../middleware/upload');
+const { authenticate } = require('../middleware/auth');
+
+// 所有作品集路由都需要认证
+router.use(authenticate);
 
 // 获取作品列表
 router.get('/', async (req, res) => {

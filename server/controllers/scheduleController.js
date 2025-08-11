@@ -60,7 +60,7 @@ const courseController = {
   // 获取单个课程详情
   async getCourseById(req, res) {
     try {
-      const course = await Course.findById(req.params.id);
+      const course = await Course.findOne({ _id: req.params.id, author: req.user._id });
       if (!course) {
         return res.status(404).json({ success: false, message: '课程不存在' });
       }
@@ -80,6 +80,7 @@ const courseController = {
       const existingCourse = await Course.findOne({
         name: courseData.name,
         teacher: courseData.teacher,
+        author: req.user._id,
         isActive: true
       });
       
@@ -87,7 +88,7 @@ const courseController = {
         return res.status(400).json({ success: false, message: '该课程已存在' });
       }
 
-      const course = new Course(courseData);
+      const course = new Course({ ...courseData, author: req.user._id });
       await course.save();
       
       res.status(201).json({ success: true, data: course });
@@ -100,8 +101,8 @@ const courseController = {
   // 更新课程
   async updateCourse(req, res) {
     try {
-      const course = await Course.findByIdAndUpdate(
-        req.params.id,
+      const course = await Course.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -121,8 +122,8 @@ const courseController = {
   async deleteCourse(req, res) {
     try {
       // 软删除：设置isActive为false
-      const course = await Course.findByIdAndUpdate(
-        req.params.id,
+      const course = await Course.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id },
         { isActive: false },
         { new: true }
       );
@@ -143,8 +144,8 @@ const courseController = {
     try {
       const { rating, review } = req.body;
       
-      const course = await Course.findByIdAndUpdate(
-        req.params.id,
+      const course = await Course.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id },
         { rating, review },
         { new: true, runValidators: true }
       );
@@ -174,7 +175,7 @@ const courseController = {
   // 获取院系列表
   async getDepartments(req, res) {
     try {
-      const departments = await Course.distinct('department', { isActive: true });
+      const departments = await Course.distinct('department', { author: req.user._id, isActive: true });
       res.json({ success: true, data: departments.filter(d => d) });
     } catch (error) {
       console.error('获取院系列表失败:', error);
@@ -194,7 +195,10 @@ const scheduleController = {
         return res.status(400).json({ success: false, message: '学期参数必填' });
       }
 
-      let query = { semester };
+      let query = { 
+        semester,
+        author: req.user._id // 只查询当前用户的课表
+      };
       if (week) {
         query.weeks = { $in: [parseInt(week)] };
       }
@@ -223,13 +227,17 @@ const scheduleController = {
   // 添加课表时间段
   async addScheduleSlot(req, res) {
     try {
-      const slotData = req.body;
+      const slotData = {
+        ...req.body,
+        author: req.user._id // 添加用户标识
+      };
       
       // 检查时间冲突
       const conflictSlot = await ScheduleSlot.findOne({
         semester: slotData.semester,
         dayOfWeek: slotData.dayOfWeek,
         weeks: { $in: slotData.weeks },
+        author: req.user._id, // 只检查当前用户的时间冲突
         $or: [
           {
             startTime: { $lt: slotData.endTime },
@@ -256,8 +264,8 @@ const scheduleController = {
   // 更新课表时间段
   async updateScheduleSlot(req, res) {
     try {
-      const slot = await ScheduleSlot.findByIdAndUpdate(
-        req.params.id,
+      const slot = await ScheduleSlot.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id }, // 只允许更新自己的课表
         req.body,
         { new: true, runValidators: true }
       ).populate('course');
@@ -276,7 +284,10 @@ const scheduleController = {
   // 删除课表时间段
   async deleteScheduleSlot(req, res) {
     try {
-      const slot = await ScheduleSlot.findByIdAndDelete(req.params.id);
+      const slot = await ScheduleSlot.findOneAndDelete({
+        _id: req.params.id,
+        author: req.user._id // 只允许删除自己的课表
+      });
       
       if (!slot) {
         return res.status(404).json({ success: false, message: '课表时间段不存在' });
@@ -303,7 +314,10 @@ const scheduleController = {
 
       for (let i = 0; i < slots.length; i++) {
         try {
-          const slot = new ScheduleSlot(slots[i]);
+          const slot = new ScheduleSlot({
+            ...slots[i],
+            author: req.user._id // 添加用户标识
+          });
           await slot.save();
           await slot.populate('course');
           createdSlots.push(slot);

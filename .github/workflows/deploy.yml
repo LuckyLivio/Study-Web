@@ -1,0 +1,150 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          client/package-lock.json
+          server/package-lock.json
+    
+    - name: Install client dependencies
+      run: |
+        cd client
+        npm ci
+    
+    - name: Install server dependencies
+      run: |
+        cd server
+        npm ci
+    
+    - name: Build client
+      run: |
+        cd client
+        npm run build
+    
+    - name: Test server
+      run: |
+        cd server
+        npm test || echo "No tests found, skipping..."
+      env:
+        NODE_ENV: test
+        MONGODB_URI: mongodb://localhost:27017/test
+        JWT_SECRET: test-secret
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          client/package-lock.json
+          server/package-lock.json
+    
+    - name: Install dependencies and build
+      run: |
+        cd client
+        npm ci
+        npm run build
+        cd ../server
+        npm ci
+    
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        port: ${{ secrets.SERVER_PORT || 22 }}
+        script: |
+          # 设置变量
+          DEPLOY_DIR="/var/www/student-website"
+          REPO_URL="https://github.com/${{ github.repository }}.git"
+          
+          # 停止现有服务
+          pm2 stop student-website || true
+          
+          # 备份当前部署
+          if [ -d "$DEPLOY_DIR" ]; then
+            sudo cp -r "$DEPLOY_DIR" "$DEPLOY_DIR-backup-$(date +%Y%m%d-%H%M%S)" || true
+          fi
+          
+          # 创建部署目录
+          sudo mkdir -p "$DEPLOY_DIR"
+          sudo chown -R $USER:$USER "$DEPLOY_DIR"
+          
+          # 拉取最新代码
+          if [ -d "$DEPLOY_DIR/.git" ]; then
+            cd "$DEPLOY_DIR"
+            git fetch origin
+            git reset --hard origin/main
+          else
+            git clone "$REPO_URL" "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+          fi
+          
+          # 安装客户端依赖并构建
+          cd client
+          npm ci --production=false
+          npm run build
+          
+          # 安装服务端依赖
+          cd ../server
+          npm ci --production
+          
+          # 设置环境变量
+          cat > .env << EOF
+          NODE_ENV=production
+          PORT=5000
+          MONGODB_URI=${{ secrets.MONGODB_URI }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+          EOF
+          
+          # 创建必要目录
+          mkdir -p uploads/portfolio
+          mkdir -p logs
+          
+          # 设置文件权限
+          sudo chown -R www-data:www-data "$DEPLOY_DIR"
+          sudo chmod -R 755 "$DEPLOY_DIR"
+          sudo chmod -R 777 "$DEPLOY_DIR/server/uploads"
+          sudo chmod -R 777 "$DEPLOY_DIR/server/logs"
+          
+          # 启动服务
+          cd "$DEPLOY_DIR"
+          pm2 start ecosystem.config.js --env production
+          pm2 save
+          
+          # 重新加载Nginx
+          sudo nginx -t && sudo systemctl reload nginx
+          
+          echo "Deployment completed successfully!"

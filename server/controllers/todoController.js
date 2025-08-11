@@ -14,7 +14,9 @@ exports.getTodos = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const filter = {};
+    const filter = {
+      author: req.user._id // 只查询当前用户的待办事项
+    };
     
     // 筛选条件
     if (completed !== undefined) {
@@ -85,7 +87,8 @@ exports.createTodo = async (req, res) => {
       priority,
       category,
       dueDate: dueDate ? new Date(dueDate) : undefined,
-      tags: tags || []
+      tags: tags || [],
+      author: req.user._id // 添加作者ID
     });
 
     await todo.save();
@@ -114,8 +117,8 @@ exports.updateTodo = async (req, res) => {
     delete updates.createdAt;
     delete updates._id;
 
-    const todo = await Todo.findByIdAndUpdate(
-      id,
+    const todo = await Todo.findOneAndUpdate(
+      { _id: id, author: req.user._id },
       { ...updates, updatedAt: Date.now() },
       { new: true, runValidators: true }
     );
@@ -146,7 +149,7 @@ exports.toggleTodo = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const todo = await Todo.findById(id);
+    const todo = await Todo.findOne({ _id: id, author: req.user._id });
     if (!todo) {
       return res.status(404).json({
         success: false,
@@ -176,7 +179,7 @@ exports.deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const todo = await Todo.findByIdAndDelete(id);
+    const todo = await Todo.findOneAndDelete({ _id: id, author: req.user._id });
     if (!todo) {
       return res.status(404).json({
         success: false,
@@ -200,7 +203,7 @@ exports.deleteTodo = async (req, res) => {
 // 批量删除已完成的待办事项
 exports.deleteCompleted = async (req, res) => {
   try {
-    const result = await Todo.deleteMany({ completed: true });
+    const result = await Todo.deleteMany({ completed: true, author: req.user._id });
 
     res.json({
       success: true,
@@ -218,15 +221,18 @@ exports.deleteCompleted = async (req, res) => {
 // 获取统计信息
 exports.getTodoStats = async (req, res) => {
   try {
-    const total = await Todo.countDocuments();
-    const completed = await Todo.countDocuments({ completed: true });
+    const userFilter = { author: req.user._id };
+    const total = await Todo.countDocuments(userFilter);
+    const completed = await Todo.countDocuments({ ...userFilter, completed: true });
     const pending = total - completed;
     
     const priorityStats = await Todo.aggregate([
+      { $match: userFilter },
       { $group: { _id: '$priority', count: { $sum: 1 } } }
     ]);
     
     const categoryStats = await Todo.aggregate([
+      { $match: userFilter },
       { $group: { _id: '$category', count: { $sum: 1 } } }
     ]);
 
@@ -237,12 +243,14 @@ exports.getTodoStats = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     const dueTodayCount = await Todo.countDocuments({
+      ...userFilter,
       dueDate: { $gte: today, $lt: tomorrow },
       completed: false
     });
 
     // 逾期任务
     const overdueCount = await Todo.countDocuments({
+      ...userFilter,
       dueDate: { $lt: today },
       completed: false
     });

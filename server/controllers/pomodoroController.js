@@ -15,7 +15,9 @@ exports.getSessions = async (req, res) => {
       sortOrder = 'desc'
     } = req.query;
 
-    const filter = {};
+    const filter = {
+      author: req.user._id // 只查询当前用户的番茄钟会话
+    };
     
     // 筛选条件
     if (type) {
@@ -91,7 +93,8 @@ exports.startSession = async (req, res) => {
       duration,
       task: task?.trim(),
       category,
-      startTime: new Date()
+      startTime: new Date(),
+      author: req.user._id // 添加作者ID
     });
 
     await session.save();
@@ -116,7 +119,7 @@ exports.completeSession = async (req, res) => {
     const { id } = req.params;
     const { notes, interruptions = 0, pausedTime = 0 } = req.body;
 
-    const session = await PomodoroSession.findById(id);
+    const session = await PomodoroSession.findOne({ _id: id, author: req.user._id });
     if (!session) {
       return res.status(404).json({
         success: false,
@@ -160,7 +163,7 @@ exports.cancelSession = async (req, res) => {
     const { id } = req.params;
     const { reason } = req.body;
 
-    const session = await PomodoroSession.findById(id);
+    const session = await PomodoroSession.findOne({ _id: id, author: req.user._id });
     if (!session) {
       return res.status(404).json({
         success: false,
@@ -208,8 +211,8 @@ exports.updateSession = async (req, res) => {
     delete updates.actualDuration;
     delete updates._id;
 
-    const session = await PomodoroSession.findByIdAndUpdate(
-      id,
+    const session = await PomodoroSession.findOneAndUpdate(
+      { _id: id, author: req.user._id },
       updates,
       { new: true, runValidators: true }
     );
@@ -240,7 +243,7 @@ exports.deleteSession = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const session = await PomodoroSession.findByIdAndDelete(id);
+    const session = await PomodoroSession.findOneAndDelete({ _id: id, author: req.user._id });
     if (!session) {
       return res.status(404).json({
         success: false,
@@ -281,11 +284,14 @@ exports.getPomodoroStats = async (req, res) => {
     startDate.setHours(0, 0, 0, 0);
 
     // 基础统计
+    const userFilter = { author: req.user._id };
     const totalSessions = await PomodoroSession.countDocuments({
+      ...userFilter,
       startTime: { $gte: startDate }
     });
     
     const completedSessions = await PomodoroSession.countDocuments({
+      ...userFilter,
       startTime: { $gte: startDate },
       isCompleted: true
     });
@@ -294,6 +300,7 @@ exports.getPomodoroStats = async (req, res) => {
     const focusTimeResult = await PomodoroSession.aggregate([
       {
         $match: {
+          ...userFilter,
           startTime: { $gte: startDate },
           isCompleted: true,
           type: '工作'
@@ -313,6 +320,7 @@ exports.getPomodoroStats = async (req, res) => {
     const typeStats = await PomodoroSession.aggregate([
       {
         $match: {
+          ...userFilter,
           startTime: { $gte: startDate }
         }
       },
@@ -332,6 +340,7 @@ exports.getPomodoroStats = async (req, res) => {
     const categoryStats = await PomodoroSession.aggregate([
       {
         $match: {
+          ...userFilter,
           startTime: { $gte: startDate },
           type: '工作'
         }
@@ -349,6 +358,7 @@ exports.getPomodoroStats = async (req, res) => {
     const dailyStats = await PomodoroSession.aggregate([
       {
         $match: {
+          ...userFilter,
           startTime: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
         }
       },
@@ -383,6 +393,7 @@ exports.getPomodoroStats = async (req, res) => {
     const interruptionResult = await PomodoroSession.aggregate([
       {
         $match: {
+          ...userFilter,
           startTime: { $gte: startDate },
           isCompleted: true
         }

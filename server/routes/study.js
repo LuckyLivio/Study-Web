@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { studyNoteController, studyMaterialController, studyPlanController } = require('../controllers/studyController');
+const { authenticate } = require('../middleware/auth');
 
 // 配置文件上传
 const storage = multer.diskStorage({
@@ -42,6 +43,9 @@ const upload = multer({
 });
 
 // ==================== 学习笔记相关路由 ====================
+
+// 所有学习相关路由都需要认证
+router.use(authenticate);
 
 // 获取所有学习笔记
 router.get('/notes', studyNoteController.getAllNotes);

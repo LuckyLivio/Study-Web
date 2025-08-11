@@ -1,15 +1,25 @@
 {
-  "name": "student-personal-website",
+  "name": "student-website",
   "version": "1.0.0",
-  "description": "大学生多功能个人网站",
+  "description": "A comprehensive student website with study tools, portfolio, and productivity features",
   "main": "server/index.js",
   "scripts": {
+    "start": "node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
-    "start": "cd server && npm start"
+    "install:client": "cd client && npm install",
+    "install:server": "cd server && npm install",
+    "install:all": "npm run install:client && npm run install:server",
+    "build:client": "cd client && npm run build",
+    "start:server": "cd server && npm start",
+    "dev:client": "cd client && npm start",
+    "dev:server": "cd server && npm run dev",
+    "test:client": "cd client && npm test -- --watchAll=false",
+    "test:server": "cd server && npm test",
+    "test": "npm run test:server && npm run test:client",
+    "lint": "cd client && npm run lint && cd ../server && npm run lint"
   },
   "keywords": [
     "student",
