@@ -15,7 +15,7 @@ services:
       - key: GENERATE_SOURCEMAP
         value: false
       - key: NODE_OPTIONS
-        value: --max-old-space-size=2048
+        value: --max-old-space-size=3072
       - key: NODE_ENV
         value: production
       - key: INLINE_RUNTIME_CHUNK
@@ -25,4 +25,10 @@ services:
       - key: ESLINT_NO_DEV_ERRORS
         value: true
       - key: TSC_COMPILE_ON_ERROR
+        value: true
+      - key: FAST_REFRESH
+        value: false
+      - key: DISABLE_ESLINT_PLUGIN
+        value: true
+      - key: SKIP_PREFLIGHT_CHECK
         value: true
