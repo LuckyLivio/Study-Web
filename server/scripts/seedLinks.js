@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const ExternalLink = require('../models/ExternalLink');
+const User = require('../models/User');
 require('dotenv').config();
 
 // 连接数据库
@@ -167,12 +168,31 @@ const sampleLinks = [
 // 插入数据
 async function seedLinks() {
   try {
+    // 查找或创建默认用户
+    let defaultUser = await User.findOne({ email: 'admin@example.com' });
+    if (!defaultUser) {
+      defaultUser = await User.create({
+        username: 'admin',
+        email: 'admin@example.com',
+        password: 'admin123', // 这会被自动哈希
+        role: 'admin'
+      });
+      console.log('创建默认用户成功');
+    }
+    console.log('使用用户ID:', defaultUser._id);
+
     // 清空现有数据
     await ExternalLink.deleteMany({});
     console.log('已清空现有链接数据');
 
+    // 为每个链接添加 author 字段
+    const linksWithAuthor = sampleLinks.map(link => ({
+      ...link,
+      author: defaultUser._id
+    }));
+
     // 插入示例数据
-    const links = await ExternalLink.insertMany(sampleLinks);
+    const links = await ExternalLink.insertMany(linksWithAuthor);
     console.log(`成功插入 ${links.length} 条链接数据`);
 
     // 显示插入的数据

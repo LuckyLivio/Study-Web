@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Blog = require('../models/Blog');
 const { upload } = require('../middleware/upload');
+const { authenticate } = require('../middleware/auth');
+
+// 所有博客路由都需要认证
+router.use(authenticate);
 
 // 获取博客列表
 router.get('/', async (req, res) => {
@@ -18,7 +22,9 @@ router.get('/', async (req, res) => {
     } = req.query;
 
     // 构建查询条件
-    const query = {};
+    const query = {
+      author: req.user._id // 只查询当前用户的博客
+    };
     
     // 搜索条件
     if (search) {
@@ -85,7 +91,7 @@ router.get('/', async (req, res) => {
 // 获取单个博客详情
 router.get('/:id', async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
+    const blog = await Blog.findOne({ _id: req.params.id, author: req.user._id });
     if (!blog) {
       return res.status(404).json({ success: false, message: '博客不存在' });
     }
@@ -105,6 +111,7 @@ router.post('/', upload.single('featuredImage'), async (req, res) => {
   try {
     const blogData = {
       ...req.body,
+      author: req.user._id, // 添加作者ID
       tags: Array.isArray(req.body.tags) ? req.body.tags : (req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : []),
       category: req.body.category || '日记'
     };
@@ -136,8 +143,8 @@ router.put('/:id', upload.single('featuredImage'), async (req, res) => {
       updateData.featuredImage = `/uploads/${req.file.filename}`;
     }
     
-    const blog = await Blog.findByIdAndUpdate(
-      req.params.id,
+    const blog = await Blog.findOneAndUpdate(
+      { _id: req.params.id, author: req.user._id },
       updateData,
       { new: true, runValidators: true }
     );
@@ -156,7 +163,7 @@ router.put('/:id', upload.single('featuredImage'), async (req, res) => {
 // 删除博客
 router.delete('/:id', async (req, res) => {
   try {
-    const blog = await Blog.findByIdAndDelete(req.params.id);
+    const blog = await Blog.findOneAndDelete({ _id: req.params.id, author: req.user._id });
     if (!blog) {
       return res.status(404).json({ success: false, message: '博客不存在' });
     }
@@ -209,18 +216,19 @@ router.get('/meta/tags', async (req, res) => {
 // 获取博客统计
 router.get('/meta/stats', async (req, res) => {
   try {
-    const totalBlogs = await Blog.countDocuments({ status: '已发布' });
+    const userFilter = { author: req.user._id };
+    const totalBlogs = await Blog.countDocuments({ ...userFilter, status: '已发布' });
     const totalViews = await Blog.aggregate([
-      { $match: { status: '已发布' } },
+      { $match: { ...userFilter, status: '已发布' } },
       { $group: { _id: null, total: { $sum: '$views' } } }
     ]);
     const totalLikes = await Blog.aggregate([
-      { $match: { status: '已发布' } },
+      { $match: { ...userFilter, status: '已发布' } },
       { $group: { _id: null, total: { $sum: '$likes' } } }
     ]);
     
     const categoryStats = await Blog.aggregate([
-      { $match: { status: '已发布' } },
+      { $match: { ...userFilter, status: '已发布' } },
       { $group: { _id: '$category', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);

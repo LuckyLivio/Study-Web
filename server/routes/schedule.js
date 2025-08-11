@@ -9,6 +9,7 @@ const {
   fileController,
   sharedScheduleController
 } = require('../controllers/scheduleController');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -53,6 +54,13 @@ const upload = multer({
   }
 });
 
+// 公开路由（不需要认证）
+router.get('/shared-schedules/public', sharedScheduleController.getPublicSharedSchedules);
+router.get('/shared-schedules/code/:shareCode', sharedScheduleController.getSharedScheduleByCode);
+
+// 以下路由需要认证
+router.use(authenticate);
+
 // 课程管理路由
 router.get('/courses', courseController.getAllCourses);
 router.get('/courses/tags', courseController.getCourseTags);
@@ -80,10 +88,8 @@ router.post('/upload', upload.single('scheduleFile'), fileController.uploadSched
 router.get('/files', fileController.getUploadedFiles);
 router.delete('/files/:id', fileController.deleteUploadedFile);
 
-// 共享课表相关路由
+// 共享课表相关路由（需要认证）
 router.post('/shared-schedules', sharedScheduleController.createSharedSchedule);
-router.get('/shared-schedules/public', sharedScheduleController.getPublicSharedSchedules);
-router.get('/shared-schedules/code/:shareCode', sharedScheduleController.getSharedScheduleByCode);
 router.post('/shared-schedules/compare', sharedScheduleController.compareSchedules);
 
 // 错误处理中间件

@@ -15,7 +15,9 @@ exports.getReminders = async (req, res) => {
       sortOrder = 'asc'
     } = req.query;
 
-    const filter = {};
+    const filter = {
+      author: req.user._id // 只查询当前用户的提醒
+    };
     
     // 筛选条件
     if (isActive !== undefined) {
@@ -79,6 +81,7 @@ exports.getUpcomingReminders = async (req, res) => {
     const futureTime = new Date(now.getTime() + hours * 60 * 60 * 1000);
 
     const reminders = await Reminder.find({
+      author: req.user._id,
       reminderTime: { $gte: now, $lte: futureTime },
       isActive: true,
       isCompleted: false,
@@ -129,7 +132,8 @@ exports.createReminder = async (req, res) => {
       type,
       priority,
       category,
-      tags: tags || []
+      tags: tags || [],
+      author: req.user._id // 添加作者ID
     });
 
     await reminder.save();
@@ -162,8 +166,8 @@ exports.updateReminder = async (req, res) => {
       updates.reminderTime = new Date(updates.reminderTime);
     }
 
-    const reminder = await Reminder.findByIdAndUpdate(
-      id,
+    const reminder = await Reminder.findOneAndUpdate(
+      { _id: id, author: req.user._id },
       { ...updates, updatedAt: Date.now() },
       { new: true, runValidators: true }
     );
@@ -194,7 +198,7 @@ exports.completeReminder = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const reminder = await Reminder.findById(id);
+    const reminder = await Reminder.findOne({ _id: id, author: req.user._id });
     if (!reminder) {
       return res.status(404).json({
         success: false,
@@ -226,7 +230,7 @@ exports.snoozeReminder = async (req, res) => {
     const { id } = req.params;
     const { minutes = 10 } = req.body;
 
-    const reminder = await Reminder.findById(id);
+    const reminder = await Reminder.findOne({ _id: id, author: req.user._id });
     if (!reminder) {
       return res.status(404).json({
         success: false,
@@ -257,7 +261,7 @@ exports.deleteReminder = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const reminder = await Reminder.findByIdAndDelete(id);
+    const reminder = await Reminder.findOneAndDelete({ _id: id, author: req.user._id });
     if (!reminder) {
       return res.status(404).json({
         success: false,
@@ -281,8 +285,9 @@ exports.deleteReminder = async (req, res) => {
 // 获取统计信息
 exports.getReminderStats = async (req, res) => {
   try {
-    const total = await Reminder.countDocuments({ isActive: true });
-    const completed = await Reminder.countDocuments({ isCompleted: true, isActive: true });
+    const userFilter = { author: req.user._id };
+    const total = await Reminder.countDocuments({ ...userFilter, isActive: true });
+    const completed = await Reminder.countDocuments({ ...userFilter, isCompleted: true, isActive: true });
     const pending = total - completed;
     
     // 今日提醒
@@ -292,6 +297,7 @@ exports.getReminderStats = async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     
     const todayCount = await Reminder.countDocuments({
+      ...userFilter,
       reminderTime: { $gte: today, $lt: tomorrow },
       isActive: true,
       isCompleted: false
@@ -300,6 +306,7 @@ exports.getReminderStats = async (req, res) => {
     // 逾期提醒
     const now = new Date();
     const overdueCount = await Reminder.countDocuments({
+      ...userFilter,
       reminderTime: { $lt: now },
       isActive: true,
       isCompleted: false,
@@ -311,12 +318,12 @@ exports.getReminderStats = async (req, res) => {
 
     // 类型统计
     const typeStats = await Reminder.aggregate([
-      { $match: { isActive: true } },
+      { $match: { ...userFilter, isActive: true } },
       { $group: { _id: '$type', count: { $sum: 1 } } }
     ]);
     
     const categoryStats = await Reminder.aggregate([
-      { $match: { isActive: true } },
+      { $match: { ...userFilter, isActive: true } },
       { $group: { _id: '$category', count: { $sum: 1 } } }
     ]);
 

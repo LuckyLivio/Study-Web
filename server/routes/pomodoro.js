@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const pomodoroController = require('../controllers/pomodoroController');
+const { authenticate } = require('../middleware/auth');
+
+// 所有番茄钟路由都需要认证
+router.use(authenticate);
 
 // 获取番茄钟会话记录
 router.get('/sessions', pomodoroController.getSessions);

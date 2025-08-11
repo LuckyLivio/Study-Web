@@ -19,7 +19,9 @@ const studyNoteController = {
         isPublic
       } = req.query;
 
-      const query = {};
+      const query = {
+        author: req.user._id // 只查询当前用户的笔记
+      };
       
       // 搜索条件
       if (search) {
@@ -82,6 +84,7 @@ const studyNoteController = {
     try {
       const noteData = {
         ...req.body,
+        author: req.user._id, // 设置作者为当前用户
         attachments: req.files ? req.files.map(file => ({
           filename: file.filename,
           originalName: file.originalname,
@@ -124,8 +127,8 @@ const studyNoteController = {
         updateData.tags = JSON.parse(updateData.tags);
       }
       
-      const note = await StudyNote.findByIdAndUpdate(
-        req.params.id,
+      const note = await StudyNote.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id }, // 只允许更新自己的笔记
         updateData,
         { new: true, runValidators: true }
       );
@@ -144,7 +147,7 @@ const studyNoteController = {
   // 删除笔记
   async deleteNote(req, res) {
     try {
-      const note = await StudyNote.findByIdAndDelete(req.params.id);
+      const note = await StudyNote.findOneAndDelete({ _id: req.params.id, author: req.user._id }); // 只允许删除自己的笔记
       if (!note) {
         return res.status(404).json({ success: false, message: '笔记不存在' });
       }
@@ -182,7 +185,9 @@ const studyMaterialController = {
         isPublic
       } = req.query;
 
-      const query = {};
+      const query = {
+        author: req.user._id // 只查询当前用户的资料
+      };
       
       if (search) {
         query.$or = [
@@ -229,6 +234,7 @@ const studyMaterialController = {
       
       const materialData = {
         ...req.body,
+        author: req.user._id, // 设置作者为当前用户
         fileInfo: {
           filename: req.file.filename,
           originalName: req.file.originalname,
@@ -283,7 +289,7 @@ const studyMaterialController = {
   // 删除资料
   async deleteMaterial(req, res) {
     try {
-      const material = await StudyMaterial.findByIdAndDelete(req.params.id);
+      const material = await StudyMaterial.findOneAndDelete({ _id: req.params.id, author: req.user._id }); // 只允许删除自己的资料
       if (!material) {
         return res.status(404).json({ success: false, message: '资料不存在' });
       }
@@ -316,7 +322,9 @@ const studyPlanController = {
         type = ''
       } = req.query;
 
-      const query = {};
+      const query = {
+        author: req.user._id // 只查询当前用户的计划
+      };
       
       if (search) {
         query.$or = [
@@ -356,7 +364,7 @@ const studyPlanController = {
   // 创建计划
   async createPlan(req, res) {
     try {
-      const plan = new StudyPlan(req.body);
+      const plan = new StudyPlan({ ...req.body, author: req.user._id }); // 设置作者为当前用户
       await plan.save();
       res.status(201).json({ success: true, data: plan });
     } catch (error) {
@@ -368,8 +376,8 @@ const studyPlanController = {
   // 更新计划
   async updatePlan(req, res) {
     try {
-      const plan = await StudyPlan.findByIdAndUpdate(
-        req.params.id,
+      const plan = await StudyPlan.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id }, // 只允许更新自己的计划
         req.body,
         { new: true, runValidators: true }
       );
@@ -389,7 +397,7 @@ const studyPlanController = {
   async updateTaskStatus(req, res) {
     try {
       const { taskIndex, completed } = req.body;
-      const plan = await StudyPlan.findById(req.params.id);
+      const plan = await StudyPlan.findOne({ _id: req.params.id, author: req.user._id }); // 只允许更新自己的计划
       
       if (!plan) {
         return res.status(404).json({ success: false, message: '计划不存在' });
@@ -429,7 +437,7 @@ const studyPlanController = {
   // 删除计划
   async deletePlan(req, res) {
     try {
-      const plan = await StudyPlan.findByIdAndDelete(req.params.id);
+      const plan = await StudyPlan.findOneAndDelete({ _id: req.params.id, author: req.user._id }); // 只允许删除自己的计划
       if (!plan) {
         return res.status(404).json({ success: false, message: '计划不存在' });
       }
@@ -448,6 +456,7 @@ const studyPlanController = {
       const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       
       const plans = await StudyPlan.find({
+        author: req.user._id, // 只查询当前用户的计划
         status: { $in: ['未开始', '进行中'] },
         'reminders.date': {
           $gte: now,

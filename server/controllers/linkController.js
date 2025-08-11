@@ -11,7 +11,9 @@ const linkController = {
         isActive
       } = req.query;
 
-      const query = {};
+      const query = {
+        author: req.user._id // 只查询当前用户的链接
+      };
       
       if (category) query.category = category;
       if (platform) query.platform = platform;
@@ -70,7 +72,11 @@ const linkController = {
   // 创建链接
   async createLink(req, res) {
     try {
-      const link = new ExternalLink(req.body);
+      const linkData = {
+        ...req.body,
+        author: req.user._id // 添加作者ID
+      };
+      const link = new ExternalLink(linkData);
       await link.save();
       
       res.status(201).json({ success: true, data: link });
@@ -83,8 +89,8 @@ const linkController = {
   // 更新链接
   async updateLink(req, res) {
     try {
-      const link = await ExternalLink.findByIdAndUpdate(
-        req.params.id,
+      const link = await ExternalLink.findOneAndUpdate(
+        { _id: req.params.id, author: req.user._id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -103,7 +109,7 @@ const linkController = {
   // 删除链接
   async deleteLink(req, res) {
     try {
-      const link = await ExternalLink.findByIdAndDelete(req.params.id);
+      const link = await ExternalLink.findOneAndDelete({ _id: req.params.id, author: req.user._id });
       if (!link) {
         return res.status(404).json({ success: false, message: '链接不存在' });
       }
@@ -141,7 +147,10 @@ const linkController = {
       const { links } = req.body; // [{ id, order }, ...]
       
       const updatePromises = links.map(({ id, order }) => 
-        ExternalLink.findByIdAndUpdate(id, { order })
+        ExternalLink.findOneAndUpdate(
+          { _id: id, author: req.user._id },
+          { order }
+        )
       );
       
       await Promise.all(updatePromises);
@@ -156,21 +165,25 @@ const linkController = {
   // 获取链接统计
   async getLinkStats(req, res) {
     try {
-      const totalLinks = await ExternalLink.countDocuments();
-      const activeLinks = await ExternalLink.countDocuments({ isActive: true });
+      const userFilter = { author: req.user._id };
+      const totalLinks = await ExternalLink.countDocuments(userFilter);
+      const activeLinks = await ExternalLink.countDocuments({ ...userFilter, isActive: true });
       
       // 按分类统计
       const categoryStats = await ExternalLink.aggregate([
+        { $match: userFilter },
         { $group: { _id: '$category', count: { $sum: 1 } } }
       ]);
       
       // 按平台统计
       const platformStats = await ExternalLink.aggregate([
+        { $match: userFilter },
         { $group: { _id: '$platform', count: { $sum: 1 } } }
       ]);
       
       // 点击统计
       const clickStats = await ExternalLink.aggregate([
+        { $match: userFilter },
         { $group: { _id: null, totalClicks: { $sum: '$clickCount' } } }
       ]);
       

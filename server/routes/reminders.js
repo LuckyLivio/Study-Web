@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const reminderController = require('../controllers/reminderController');
+const { authenticate } = require('../middleware/auth');
+
+// 所有提醒事项路由都需要认证
+router.use(authenticate);
 
 // 获取所有提醒事项
 router.get('/', reminderController.getReminders);
