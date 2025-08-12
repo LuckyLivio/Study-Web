@@ -34,6 +34,16 @@ const PortfolioPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取作品列表');
+        setPortfolios([]);
+        setError('请先登录以查看作品列表');
+        return;
+      }
+      
       const params = {
         ...filters,
         category: filters.category === '全部' ? '' : filters.category,
@@ -48,9 +58,16 @@ const PortfolioPage: React.FC = () => {
       } else {
         setError(response.message || '获取作品列表失败');
       }
-    } catch (err) {
-      setError('网络错误，请稍后重试');
+    } catch (err: any) {
       console.error('Error fetching portfolios:', err);
+      
+      // 如果是认证错误，提示用户登录
+      if (err?.data?.error === 'NETWORK_ERROR' || err?.response?.status === 401) {
+        setError('登录已过期，请重新登录');
+        setPortfolios([]);
+      } else {
+        setError('网络错误，请稍后重试');
+      }
     } finally {
       setLoading(false);
     }

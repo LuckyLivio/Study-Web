@@ -21,6 +21,9 @@ module.exports = {
       return webpackConfig;
     },
   },
+  devServer: {
+    historyApiFallback: true,
+  },
   style: {
     postcss: {
       plugins: [
