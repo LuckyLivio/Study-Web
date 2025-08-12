@@ -18,10 +18,8 @@ app.use(morgan('combined'));
 // 跨域配置
 app.use(cors({
   origin: [
-    process.env.CLIENT_URL || 'http://localhost:3001',
-    'http://localhost:3005',
-    'http://localhost:3006',
-    'http://localhost:3007',
+    process.env.CLIENT_URL || 'https://study-web-r3ee.onrender.com',
+    'https://study-web-r3ee.onrender.com',
     'http://livio.wang',
     'https://livio.wang'
   ],

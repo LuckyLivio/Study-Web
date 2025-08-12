@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 10000;
 
 // 基本中间件
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: process.env.CLIENT_URL || 'https://study-web-r3ee.onrender.com',
   credentials: true
 }));
 
