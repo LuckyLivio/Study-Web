@@ -34,9 +34,18 @@ const StudyNotes: React.FC<StudyNotesProps> = ({ searchTerm }) => {
   const fetchNotes = async () => {
     try {
       setLoading(true);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取学习笔记');
+        setNotes([]);
+        return;
+      }
+      
       const response = await studyNotesApi.getNotes({
         page: currentPage,
-        limit: 12,
+        limit: 10,
         search: searchTerm,
         ...filters,
       });
@@ -44,8 +53,14 @@ const StudyNotes: React.FC<StudyNotesProps> = ({ searchTerm }) => {
       if (response.pagination) {
         setTotalPages(response.pagination.pages);
       }
-    } catch (error) {
-      console.error('获取笔记失败:', error);
+    } catch (error: any) {
+      console.error('获取学习笔记失败:', error);
+      
+      // 如果是认证错误，清空数据
+      if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+        console.log('认证失败，用户可能需要重新登录');
+        setNotes([]);
+      }
     } finally {
       setLoading(false);
     }

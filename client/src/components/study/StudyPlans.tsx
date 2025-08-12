@@ -38,6 +38,15 @@ const StudyPlans: React.FC<StudyPlansProps> = ({ searchTerm }) => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取学习计划');
+        setPlans([]);
+        return;
+      }
+      
       const response = await studyPlansApi.getPlans({
         page: currentPage,
         limit: 10,
@@ -48,8 +57,14 @@ const StudyPlans: React.FC<StudyPlansProps> = ({ searchTerm }) => {
       if (response.pagination) {
         setTotalPages(response.pagination.pages);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取学习计划失败:', error);
+      
+      // 如果是认证错误，清空数据
+      if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+        console.log('认证失败，用户可能需要重新登录');
+        setPlans([]);
+      }
     } finally {
       setLoading(false);
     }

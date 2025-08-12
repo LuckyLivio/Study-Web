@@ -11,6 +11,8 @@ import {
 import StudyNotes from '../components/study/StudyNotes';
 import StudyMaterials from '../components/study/StudyMaterials';
 import StudyPlans from '../components/study/StudyPlans';
+import ErrorBoundary from '../components/ErrorBoundary';
+import AuthRequired from '../components/AuthRequired';
 import { studyPlansApi } from '../services/studyService';
 
 function classNames(...classes: string[]) {
@@ -21,6 +23,8 @@ const StudyPage: React.FC = () => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [upcomingReminders, setUpcomingReminders] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const tabs = [
     {
@@ -41,18 +45,74 @@ const StudyPage: React.FC = () => {
   ];
 
   useEffect(() => {
-    // 获取即将到期的提醒
-    const fetchUpcomingReminders = async () => {
+    // 检查认证状态和获取即将到期的提醒
+    const initializeData = async () => {
       try {
-        const response = await studyPlansApi.getUpcomingReminders();
-        setUpcomingReminders(response.data);
-      } catch (error) {
+        setIsLoading(true);
+        
+        // 检查是否有token
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('用户未登录');
+          setIsAuthenticated(false);
+          setUpcomingReminders([]);
+          return;
+        }
+        
+        setIsAuthenticated(true);
+        
+        // 添加超时保护
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('请求超时')), 15000);
+        });
+        
+        const response = await Promise.race([
+          studyPlansApi.getUpcomingReminders(),
+          timeoutPromise
+        ]) as any;
+        
+        if (response && typeof response === 'object' && 'data' in response && response.data) {
+          setUpcomingReminders(response.data);
+        }
+      } catch (error: any) {
         console.error('获取提醒失败:', error);
+        
+        // 如果是401错误，说明用户未认证
+        if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+          console.log('认证失败，用户可能需要重新登录');
+          setIsAuthenticated(false);
+        }
+        
+        // 设置空数组以防止组件卡死
+        setUpcomingReminders([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchUpcomingReminders();
+    initializeData();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载学习数据中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <AuthRequired message="请先登录以访问学习区功能" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -95,7 +155,7 @@ const StudyPage: React.FC = () => {
                 <div className="space-y-1">
                   {upcomingReminders.slice(0, 3).map((reminder, index) => (
                     <p key={index} className="text-sm text-yellow-700">
-                      <span className="font-medium">{reminder.planTitle}</span>: {reminder.reminder.message}
+                      <span className="font-medium">{reminder.planTitle}</span>: {reminder.message}
                     </p>
                   ))}
                 </div>
@@ -141,7 +201,9 @@ const StudyPage: React.FC = () => {
                   'ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2'
                 )}
               >
-                <tab.component searchTerm={searchTerm} />
+                <ErrorBoundary>
+                  <tab.component searchTerm={searchTerm} />
+                </ErrorBoundary>
               </Tab.Panel>
             ))}
           </Tab.Panels>
