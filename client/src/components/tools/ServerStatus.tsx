@@ -37,7 +37,7 @@ const ServerStatus: React.FC = () => {
   const initializeServices = (): ServiceStatus[] => [
     {
       name: '主网站',
-      url: 'https://study-web-r3ee.onrender.com',
+      url: 'http://localhost:3000',
       status: 'checking',
       responseTime: null,
       lastChecked: null,
@@ -46,7 +46,7 @@ const ServerStatus: React.FC = () => {
     },
     {
       name: 'API服务器',
-      url: 'https://study-web-r3ee.onrender.com/api',
+      url: 'http://localhost:5001',
       status: 'checking',
       responseTime: null,
       lastChecked: null,
