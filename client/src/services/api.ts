@@ -29,7 +29,7 @@ api.interceptors.request.use(
 // 响应拦截器
 api.interceptors.response.use(
   (response) => {
-    return response.data;
+    return response;
   },
   (error) => {
     if (error.response?.status === 401) {
@@ -37,7 +37,14 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
-    return Promise.reject(error.response?.data || error.message);
+    // 返回一个标准化的错误响应格式
+    return Promise.reject({
+      data: {
+        success: false,
+        message: error.response?.data?.message || error.message || '请求失败',
+        error: error.response?.data?.error || 'NETWORK_ERROR'
+      }
+    });
   }
 );
 
