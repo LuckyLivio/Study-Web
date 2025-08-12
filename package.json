@@ -9,7 +9,7 @@
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
     "build": "cd client && CI=false NODE_OPTIONS=\"--max-old-space-size=2048\" npm run build",
-    "build:render": "cd client && npm install --legacy-peer-deps --no-audit --no-fund && NODE_ENV=production CI=false REACT_APP_API_URL=https://study-web-r3ee.onrender.com/api npm run build",
+    "build:render": "cd client && npm install --legacy-peer-deps --no-audit --no-fund && NODE_ENV=production CI=false npm run build",
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
     "install:all": "npm run install:client && npm run install:server",

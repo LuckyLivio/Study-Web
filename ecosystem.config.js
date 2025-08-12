@@ -2,7 +2,7 @@ module.exports = {
   apps: [{
     name: 'student-website',
     script: './server/index.js',
-    cwd: './',
+    cwd: '/var/www/student-website',
     instances: 1,
     exec_mode: 'fork',
     env: {
@@ -11,9 +11,7 @@ module.exports = {
     },
     env_production: {
       NODE_ENV: 'production',
-      PORT: 5000,
-      CLIENT_URL: 'https://study-web-r3ee.onrender.com',
-      REACT_APP_API_URL: 'https://study-web-r3ee.onrender.com/api'
+      PORT: 5000
     },
     error_file: '/var/log/pm2/student-website-error.log',
     out_file: '/var/log/pm2/student-website-out.log',

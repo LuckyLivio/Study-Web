@@ -23,25 +23,10 @@ app.use(cors({
     'http://localhost:3006',
     'http://localhost:3007',
     'http://livio.wang',
-    'https://livio.wang',
-    'https://study-web-r3ee.onrender.com'
+    'https://livio.wang'
   ],
   credentials: true
 }));
-
-// 添加额外的CORS头部支持
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin);
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,Pragma');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 
 // 请求限制
 const limiter = rateLimit({
