@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:10000/api';
 console.log('API_BASE_URL:', API_BASE_URL);
 
 // 用户数据类型

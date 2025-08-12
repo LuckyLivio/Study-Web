@@ -7,11 +7,11 @@ module.exports = {
     exec_mode: 'fork',
     env: {
       NODE_ENV: 'development',
-      PORT: 5000
+      PORT: 10000
     },
     env_production: {
       NODE_ENV: 'production',
-      PORT: 5000
+      PORT: 10000
     },
     error_file: '/var/log/pm2/student-website-error.log',
     out_file: '/var/log/pm2/student-website-out.log',
