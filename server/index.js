@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -14,7 +15,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001"],
+      connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "https://student-website-frontend.onrender.com", "https://student-website.onrender.com"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
@@ -35,7 +36,10 @@ app.use(cors({
     'http://localhost:3006',
     'http://localhost:3007',
     'http://livio.wang',
-    'https://livio.wang'
+    'https://livio.wang',
+    // Render部署域名
+    'https://student-website-frontend.onrender.com',
+    'https://student-website.onrender.com'
   ],
   credentials: true
 }));
@@ -87,10 +91,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404处理
-app.use('*', (req, res) => {
-  res.status(404).json({ message: '接口不存在' });
-});
+// 生产环境下提供静态文件服务
+if (process.env.NODE_ENV === 'production') {
+  // 提供React构建的静态文件
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  // 处理React Router的路由，返回index.html
+  app.get('*', (req, res) => {
+    // 如果是API请求，返回404
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ message: '接口不存在' });
+    }
+    // 否则返回React应用
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  });
+} else {
+  // 开发环境下的404处理
+  app.use('*', (req, res) => {
+    res.status(404).json({ message: '接口不存在' });
+  });
+}
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
