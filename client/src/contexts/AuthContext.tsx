@@ -60,11 +60,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
+      console.log('AuthContext: 开始登录请求', { email });
       const response = await authService.login({ email, password });
+      console.log('AuthContext: 登录响应', response);
       // 如果成功，设置用户信息
       setUser(response.data.user);
       localStorage.setItem('token', response.data.token);
+      console.log('AuthContext: 登录成功，用户信息已设置');
     } catch (error: any) {
+      console.error('AuthContext: 登录失败', error);
       // 重新抛出错误，让调用方能够获取具体的错误信息
       if (error.response?.data?.message) {
         throw new Error(error.response.data.message);
