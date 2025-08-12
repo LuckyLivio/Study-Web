@@ -76,7 +76,7 @@ class PomodoroService {
   async getSessions(params?: PomodoroQueryParams): Promise<ApiResponse<PaginatedResponse<PomodoroSession>>> {
     try {
       const response = await this.apiClient.get('/sessions', { params });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || '获取会话记录失败');
     }
@@ -91,9 +91,9 @@ class PomodoroService {
   }): Promise<ApiResponse<PomodoroSession>> {
     try {
       const response = await this.apiClient.post('/sessions', sessionData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '开始会话失败');
+      throw new Error(error.data?.message || '开始会话失败');
     }
   }
 
@@ -105,9 +105,9 @@ class PomodoroService {
   }): Promise<ApiResponse<PomodoroSession>> {
     try {
       const response = await this.apiClient.put(`/sessions/${id}/complete`, data);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '完成会话失败');
+      throw new Error(error.data?.message || '完成会话失败');
     }
   }
 
@@ -115,9 +115,9 @@ class PomodoroService {
   async cancelSession(id: string, reason?: string): Promise<ApiResponse<PomodoroSession>> {
     try {
       const response = await this.apiClient.put(`/sessions/${id}/cancel`, { reason });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '取消会话失败');
+      throw new Error(error.data?.message || '取消会话失败');
     }
   }
 
@@ -125,9 +125,9 @@ class PomodoroService {
   async updateSession(id: string, sessionData: Partial<PomodoroSession>): Promise<ApiResponse<PomodoroSession>> {
     try {
       const response = await this.apiClient.put(`/sessions/${id}`, sessionData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '更新会话失败');
+      throw new Error(error.data?.message || '更新会话失败');
     }
   }
 
@@ -135,9 +135,9 @@ class PomodoroService {
   async deleteSession(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await this.apiClient.delete(`/sessions/${id}`);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '删除会话失败');
+      throw new Error(error.data?.message || '删除会话失败');
     }
   }
 
@@ -145,9 +145,9 @@ class PomodoroService {
   async getPomodoroStats(period: 'week' | 'month' | 'year' = 'week'): Promise<ApiResponse<PomodoroStats>> {
     try {
       const response = await this.apiClient.get('/stats', { params: { period } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取统计信息失败');
+      throw new Error(error.data?.message || '获取统计信息失败');
     }
   }
 }

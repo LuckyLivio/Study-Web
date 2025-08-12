@@ -73,7 +73,7 @@ class ToolsService {
   }>> {
     try {
       const response = await this.apiClient.get('/emojis', { params: { category } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || '获取表情包失败');
     }
@@ -83,9 +83,9 @@ class ToolsService {
   async getRandomEmoji(category?: string): Promise<ApiResponse<EmojiData>> {
     try {
       const response = await this.apiClient.get('/emojis/random', { params: { category } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取随机表情失败');
+      throw new Error(error.data?.message || '获取随机表情失败');
     }
   }
 
@@ -98,9 +98,9 @@ class ToolsService {
   }>> {
     try {
       const response = await this.apiClient.get('/study-tips', { params: { category } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取学习贴士失败');
+      throw new Error(error.data?.message || '获取学习贴士失败');
     }
   }
 
@@ -108,9 +108,9 @@ class ToolsService {
   async getRandomStudyTip(category?: string): Promise<ApiResponse<StudyTip>> {
     try {
       const response = await this.apiClient.get('/study-tips/random', { params: { category } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取随机学习贴士失败');
+      throw new Error(error.data?.message || '获取随机学习贴士失败');
     }
   }
 
@@ -118,9 +118,9 @@ class ToolsService {
   async getMotivationalQuote(): Promise<ApiResponse<MotivationalQuote>> {
     try {
       const response = await this.apiClient.get('/quote');
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取励志名言失败');
+      throw new Error(error.data?.message || '获取励志名言失败');
     }
   }
 
@@ -128,9 +128,9 @@ class ToolsService {
   async getRandomColor(format: 'hex' | 'rgb' | 'hsl' = 'hex'): Promise<ApiResponse<RandomColor>> {
     try {
       const response = await this.apiClient.get('/color/random', { params: { format } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '生成随机颜色失败');
+      throw new Error(error.data?.message || '生成随机颜色失败');
     }
   }
 
@@ -138,9 +138,9 @@ class ToolsService {
   async getTimeInfo(timezone: string = 'Asia/Shanghai'): Promise<ApiResponse<TimeInfo>> {
     try {
       const response = await this.apiClient.get('/time', { params: { timezone } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取时间信息失败');
+      throw new Error(error.data?.message || '获取时间信息失败');
     }
   }
 }

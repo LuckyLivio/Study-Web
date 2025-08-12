@@ -112,84 +112,90 @@ export const systemSettingsService = {
   // 获取公开的系统设置（不需要认证）
   async getPublicSettings(): Promise<PublicSettings> {
     try {
-      const response: ApiResponse<PublicSettings> = await api.get('/settings/public');
-      if (response.success && response.data) {
-        return response.data;
+      const response = await api.get('/settings/public');
+      const data = response.data || response;
+      if (data && data.success && data.data) {
+        return data.data;
       }
-      throw new Error(response.message || '获取公开设置失败');
+      throw new Error(data?.message || '获取公开设置失败');
     } catch (error: any) {
       console.error('获取公开设置失败:', error);
-      throw new Error(error.response?.data?.message || '获取公开设置失败');
+      throw new Error(error.data?.message || '获取公开设置失败');
     }
   },
 
   // 获取完整的系统设置（需要管理员权限）
   async getSettings(): Promise<SystemSettings> {
     try {
-      const response: ApiResponse<SystemSettings> = await api.get('/settings/');
-      if (response.success && response.data) {
-        return response.data;
+      const response = await api.get('/settings/');
+      const data = response.data || response;
+      if (data && data.success && data.data) {
+        return data.data;
       }
-      throw new Error(response.message || '获取系统设置失败');
+      throw new Error(data?.message || '获取系统设置失败');
     } catch (error: any) {
       console.error('获取系统设置失败:', error);
-      throw new Error(error.response?.data?.message || '获取系统设置失败');
+      throw new Error(error.data?.message || '获取系统设置失败');
     }
   },
 
   // 更新系统设置
   async updateSettings(settings: Partial<SystemSettings>): Promise<SystemSettings> {
     try {
-      const response: ApiResponse<SystemSettings> = await api.put('/settings/', settings);
-      if (response.success && response.data) {
-        return response.data;
+      const response = await api.put('/settings/', settings);
+      const data = response.data || response;
+      if (data && data.success && data.data) {
+        return data.data;
       }
-      throw new Error(response.message || '更新系统设置失败');
+      throw new Error(data?.message || '更新系统设置失败');
     } catch (error: any) {
       console.error('更新系统设置失败:', error);
-      throw new Error(error.response?.data?.message || '更新系统设置失败');
+      throw new Error(error.data?.message || '更新系统设置失败');
     }
   },
 
   // 重置系统设置为默认值
   async resetSettings(): Promise<SystemSettings> {
     try {
-      const response: ApiResponse<SystemSettings> = await api.post('/settings/reset');
-      if (response.success && response.data) {
-        return response.data;
+      const response = await api.post('/settings/reset');
+      const data = response.data || response;
+      if (data && data.success && data.data) {
+        return data.data;
       }
-      throw new Error(response.message || '重置系统设置失败');
+      throw new Error(data?.message || '重置系统设置失败');
     } catch (error: any) {
       console.error('重置系统设置失败:', error);
-      throw new Error(error.response?.data?.message || '重置系统设置失败');
+      throw new Error(error.data?.message || '重置系统设置失败');
     }
   },
 
   // 测试邮件配置
   async testEmailConfig(testEmail: string): Promise<string> {
     try {
-      const response: ApiResponse<string> = await api.post('/settings/test-email', { testEmail });
-      if (response.success) {
-        return response.message || '测试邮件发送成功';
+      const response = await api.post('/settings/test-email', { testEmail });
+      const data = response.data || response;
+      if (data.success) {
+        return data.message || '测试邮件发送成功';
       }
-      throw new Error(response.message || '测试邮件发送失败');
+      throw new Error(data.message || '测试邮件发送失败');
     } catch (error: any) {
       console.error('测试邮件配置失败:', error);
-      throw new Error(error.response?.data?.message || '测试邮件配置失败');
+      throw new Error(error.data?.message || '测试邮件配置失败');
     }
   },
 
   // 获取系统统计信息
   async getSystemStats(): Promise<SystemStats> {
     try {
-      const response: ApiResponse<SystemStats> = await api.get('/settings/stats');
-      if (response.success && response.data) {
-        return response.data;
+      const response = await api.get('/settings/stats');
+      const data = response.data || response;
+      if (data && data.success && data.data) {
+        return data.data;
       }
-      throw new Error(response.message || '获取系统统计失败');
+      throw new Error(data?.message || '获取系统统计失败');
     } catch (error: any) {
       console.error('获取系统统计失败:', error);
-      throw new Error(error.response?.data?.message || '获取系统统计失败');
+      throw new Error(error.data?.message || '获取系统统计失败');
     }
   }
 };

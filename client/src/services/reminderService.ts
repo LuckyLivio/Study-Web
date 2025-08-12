@@ -70,7 +70,7 @@ class ReminderService {
   async getReminders(params?: ReminderQueryParams): Promise<ApiResponse<PaginatedResponse<Reminder>>> {
     try {
       const response = await this.apiClient.get('/', { params });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
       throw new Error(error.response?.data?.message || '获取提醒事项失败');
     }
@@ -80,9 +80,9 @@ class ReminderService {
   async getUpcomingReminders(hours: number = 24): Promise<ApiResponse<Reminder[]>> {
     try {
       const response = await this.apiClient.get('/upcoming', { params: { hours } });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取即将到来的提醒失败');
+      throw new Error(error.data?.message || '获取即将到来的提醒失败');
     }
   }
 
@@ -90,9 +90,9 @@ class ReminderService {
   async createReminder(reminderData: Partial<Reminder>): Promise<ApiResponse<Reminder>> {
     try {
       const response = await this.apiClient.post('/', reminderData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '创建提醒事项失败');
+      throw new Error(error.data?.message || '创建提醒事项失败');
     }
   }
 
@@ -100,9 +100,9 @@ class ReminderService {
   async updateReminder(id: string, reminderData: Partial<Reminder>): Promise<ApiResponse<Reminder>> {
     try {
       const response = await this.apiClient.put(`/${id}`, reminderData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '更新提醒事项失败');
+      throw new Error(error.data?.message || '更新提醒事项失败');
     }
   }
 
@@ -110,9 +110,9 @@ class ReminderService {
   async completeReminder(id: string): Promise<ApiResponse<Reminder>> {
     try {
       const response = await this.apiClient.put(`/${id}/complete`);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '完成提醒失败');
+      throw new Error(error.data?.message || '完成提醒失败');
     }
   }
 
@@ -120,9 +120,9 @@ class ReminderService {
   async snoozeReminder(id: string, minutes: number = 10): Promise<ApiResponse<Reminder>> {
     try {
       const response = await this.apiClient.put(`/${id}/snooze`, { minutes });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '延迟提醒失败');
+      throw new Error(error.data?.message || '延迟提醒失败');
     }
   }
 
@@ -130,9 +130,9 @@ class ReminderService {
   async deleteReminder(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await this.apiClient.delete(`/${id}`);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '删除提醒事项失败');
+      throw new Error(error.data?.message || '删除提醒事项失败');
     }
   }
 
@@ -140,9 +140,9 @@ class ReminderService {
   async getReminderStats(): Promise<ApiResponse<ReminderStats>> {
     try {
       const response = await this.apiClient.get('/stats');
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取统计信息失败');
+      throw new Error(error.data?.message || '获取统计信息失败');
     }
   }
 }

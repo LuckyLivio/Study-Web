@@ -67,9 +67,9 @@ class TodoService {
   async getTodos(params?: TodoQueryParams): Promise<ApiResponse<PaginatedResponse<Todo>>> {
     try {
       const response = await this.apiClient.get('/', { params });
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取待办事项失败');
+      throw new Error(error.data?.message || '获取待办事项失败');
     }
   }
 
@@ -77,9 +77,9 @@ class TodoService {
   async createTodo(todoData: Partial<Todo>): Promise<ApiResponse<Todo>> {
     try {
       const response = await this.apiClient.post('/', todoData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '创建待办事项失败');
+      throw new Error(error.data?.message || '创建待办事项失败');
     }
   }
 
@@ -87,9 +87,9 @@ class TodoService {
   async updateTodo(id: string, todoData: Partial<Todo>): Promise<ApiResponse<Todo>> {
     try {
       const response = await this.apiClient.put(`/${id}`, todoData);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '更新待办事项失败');
+      throw new Error(error.data?.message || '更新待办事项失败');
     }
   }
 
@@ -97,9 +97,9 @@ class TodoService {
   async toggleTodo(id: string): Promise<ApiResponse<Todo>> {
     try {
       const response = await this.apiClient.patch(`/${id}/toggle`, {});
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '切换状态失败');
+      throw new Error(error.data?.message || '切换状态失败');
     }
   }
 
@@ -107,9 +107,9 @@ class TodoService {
   async deleteTodo(id: string): Promise<ApiResponse<void>> {
     try {
       const response = await this.apiClient.delete(`/${id}`);
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '删除待办事项失败');
+      throw new Error(error.data?.message || '删除待办事项失败');
     }
   }
 
@@ -117,9 +117,9 @@ class TodoService {
   async deleteCompleted(): Promise<ApiResponse<void>> {
     try {
       const response = await this.apiClient.delete('/completed/batch');
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '批量删除失败');
+      throw new Error(error.data?.message || '批量删除失败');
     }
   }
 
@@ -127,9 +127,9 @@ class TodoService {
   async getTodoStats(): Promise<ApiResponse<TodoStats>> {
     try {
       const response = await this.apiClient.get('/stats');
-      return response.data;
+      return response.data || response;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || '获取统计信息失败');
+      throw new Error(error.data?.message || '获取统计信息失败');
     }
   }
 }
