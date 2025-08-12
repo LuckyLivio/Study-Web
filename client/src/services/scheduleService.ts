@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+import api from './api';
 
 // 课程相关接口
 export interface Course {
@@ -152,32 +150,32 @@ class ScheduleService {
     department?: string;
     isActive?: boolean;
   }): Promise<PaginatedResponse<Course>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/courses`, { params });
+    const response = await api.get('/schedule/courses', { params });
     return response.data || response;
   }
 
   async getCourseById(id: string): Promise<ApiResponse<Course>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/courses/${id}`);
+    const response = await api.get(`/schedule/courses/${id}`);
     return response.data || response;
   }
 
   async createCourse(course: Omit<Course, '_id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<Course>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/courses`, course);
+    const response = await api.post('/schedule/courses', course);
     return response.data || response;
   }
 
   async updateCourse(id: string, course: Partial<Course>): Promise<ApiResponse<Course>> {
-    const response = await axios.put(`${API_BASE_URL}/schedule/courses/${id}`, course);
+    const response = await api.put(`/schedule/courses/${id}`, course);
     return response.data || response;
   }
 
   async deleteCourse(id: string): Promise<ApiResponse<void>> {
-    const response = await axios.delete(`${API_BASE_URL}/schedule/courses/${id}`);
+    const response = await api.delete(`/schedule/courses/${id}`);
     return response.data || response;
   }
 
   async updateCourseRating(id: string, rating: number, review?: string): Promise<ApiResponse<Course>> {
-    const response = await axios.put(`${API_BASE_URL}/schedule/courses/${id}/rating`, {
+    const response = await api.put(`/schedule/courses/${id}/rating`, {
       rating,
       review
     });
@@ -185,12 +183,12 @@ class ScheduleService {
   }
 
   async getCourseTags(): Promise<ApiResponse<string[]>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/courses/tags`);
+    const response = await api.get('/schedule/courses/tags');
     return response.data || response;
   }
 
   async getDepartments(): Promise<ApiResponse<string[]>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/courses/departments`);
+    const response = await api.get('/schedule/courses/departments');
     return response.data || response;
   }
 
@@ -199,22 +197,22 @@ class ScheduleService {
     semester: string;
     week?: number;
   }): Promise<ApiResponse<{ [dayOfWeek: number]: ScheduleSlot[] }>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/schedule`, { params });
+    const response = await api.get('/schedule/schedule', { params });
     return response.data || response;
   }
 
   async addScheduleSlot(slot: Omit<ScheduleSlot, '_id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<ScheduleSlot>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/schedule/slots`, slot);
+    const response = await api.post('/schedule/schedule/slots', slot);
     return response.data || response;
   }
 
   async updateScheduleSlot(id: string, slot: Partial<ScheduleSlot>): Promise<ApiResponse<ScheduleSlot>> {
-    const response = await axios.put(`${API_BASE_URL}/schedule/schedule/slots/${id}`, slot);
+    const response = await api.put(`/schedule/schedule/slots/${id}`, slot);
     return response.data || response;
   }
 
   async deleteScheduleSlot(id: string): Promise<ApiResponse<void>> {
-    const response = await axios.delete(`${API_BASE_URL}/schedule/schedule/slots/${id}`);
+    const response = await api.delete(`/schedule/schedule/slots/${id}`);
     return response.data || response;
   }
 
@@ -222,33 +220,33 @@ class ScheduleService {
     created: ScheduleSlot[];
     errors: { index: number; error: string }[];
   }>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/schedule/slots/batch`, { slots });
+    const response = await api.post('/schedule/schedule/slots/batch', { slots });
     return response.data || response;
   }
 
   // 课表模板管理
   async getScheduleTemplates(): Promise<ApiResponse<ScheduleTemplate[]>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/templates`);
+    const response = await api.get('/schedule/templates');
     return response.data || response;
   }
 
   async createScheduleTemplate(template: Omit<ScheduleTemplate, '_id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<ScheduleTemplate>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/templates`, template);
+    const response = await api.post('/schedule/templates', template);
     return response.data || response;
   }
 
   async updateScheduleTemplate(id: string, template: Partial<ScheduleTemplate>): Promise<ApiResponse<ScheduleTemplate>> {
-    const response = await axios.put(`${API_BASE_URL}/schedule/templates/${id}`, template);
+    const response = await api.put(`/schedule/templates/${id}`, template);
     return response.data || response;
   }
 
   async deleteScheduleTemplate(id: string): Promise<ApiResponse<void>> {
-    const response = await axios.delete(`${API_BASE_URL}/schedule/templates/${id}`);
+    const response = await api.delete(`/schedule/templates/${id}`);
     return response.data || response;
   }
 
   async setDefaultTemplate(id: string): Promise<ApiResponse<ScheduleTemplate>> {
-    const response = await axios.put(`${API_BASE_URL}/schedule/templates/${id}/default`);
+    const response = await api.put(`/schedule/templates/${id}/default`);
     return response.data || response;
   }
 
@@ -260,7 +258,7 @@ class ScheduleService {
       formData.append('notes', notes);
     }
 
-    const response = await axios.post(`${API_BASE_URL}/schedule/upload`, formData, {
+    const response = await api.post('/schedule/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -269,12 +267,12 @@ class ScheduleService {
   }
 
   async getUploadedFiles(): Promise<ApiResponse<ScheduleFile[]>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/files`);
+    const response = await api.get('/schedule/files');
     return response.data || response;
   }
 
   async deleteUploadedFile(id: string): Promise<ApiResponse<void>> {
-    const response = await axios.delete(`${API_BASE_URL}/schedule/files/${id}`);
+    const response = await api.delete(`/schedule/files/${id}`);
     return response.data || response;
   }
 
@@ -290,7 +288,7 @@ class ScheduleService {
     isPublic: boolean;
     tags?: string[];
   }): Promise<ApiResponse<SharedSchedule>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/shared-schedules`, data);
+    const response = await api.post('/schedule/shared-schedules', data);
     return response.data || response;
   }
 
@@ -307,19 +305,19 @@ class ScheduleService {
       count: number;
     };
   }>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/shared-schedules/public`, { params });
+    const response = await api.get('/schedule/shared-schedules/public', { params });
     return response.data || response;
   }
 
   // 通过分享码获取课表
   async getSharedScheduleByCode(shareCode: string): Promise<ApiResponse<SharedSchedule>> {
-    const response = await axios.get(`${API_BASE_URL}/schedule/shared-schedules/code/${shareCode}`);
+    const response = await api.get(`/schedule/shared-schedules/code/${shareCode}`);
     return response.data || response;
   }
 
   // 课表比对分析
   async compareSchedules(scheduleIds: string[]): Promise<ApiResponse<ScheduleComparison>> {
-    const response = await axios.post(`${API_BASE_URL}/schedule/shared-schedules/compare`, { scheduleIds });
+    const response = await api.post('/schedule/shared-schedules/compare', { scheduleIds });
     return response.data || response;
   }
 

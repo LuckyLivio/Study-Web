@@ -92,12 +92,30 @@ const SchedulePage: React.FC = () => {
   const loadCourses = async () => {
     try {
       setLoading(true);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取课程列表');
+        setCourses([]);
+        setError('请先登录以查看课程列表');
+        return;
+      }
+      
       const response = await scheduleService.getCourses({ isActive: true });
       if (response.success && response.data?.courses) {
         setCourses(response.data.courses);
       }
-    } catch (error) {
-      setError('加载课程列表失败');
+    } catch (error: any) {
+      console.error('Error loading courses:', error);
+      
+      // 如果是认证错误，提示用户登录
+      if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+        setError('登录已过期，请重新登录');
+        setCourses([]);
+      } else {
+        setError('加载课程列表失败');
+      }
       console.error('加载课程失败:', error);
     } finally {
       setLoading(false);
@@ -107,6 +125,16 @@ const SchedulePage: React.FC = () => {
   const loadSchedule = async () => {
     try {
       setLoading(true);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取课表');
+        setSchedule([]);
+        setError('请先登录以查看课表');
+        return;
+      }
+      
       const response = await scheduleService.getSchedule({
         semester: currentSemester,
         week: currentWeek
@@ -114,8 +142,16 @@ const SchedulePage: React.FC = () => {
       if (response.success && response.data) {
         setSchedule(response.data);
       }
-    } catch (error) {
-      setError('加载课表失败');
+    } catch (error: any) {
+      console.error('Error loading schedule:', error);
+      
+      // 如果是认证错误，提示用户登录
+      if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+        setError('登录已过期，请重新登录');
+        setSchedule([]);
+      } else {
+        setError('加载课表失败');
+      }
       console.error('加载课表失败:', error);
     } finally {
       setLoading(false);

@@ -112,6 +112,25 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            
+            {/* 404 路由 - 必须放在最后 */}
+            <Route 
+              path="*" 
+              element={
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                  <div className="text-center">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                    <p className="text-gray-600 mb-6">页面未找到</p>
+                    <a 
+                      href="/" 
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+                    >
+                      返回首页
+                    </a>
+                  </div>
+                </div>
+              } 
+            />
             </Routes>
           </Suspense>
         </div>
