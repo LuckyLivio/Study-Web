@@ -79,13 +79,13 @@ export const blogService = {
   // 获取博客列表
   async getBlogs(params: BlogListParams = {}): Promise<BlogListResponse> {
     const response = await blogApi.get('/', { params });
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 获取博客详情
   async getBlog(id: string): Promise<Blog> {
     const response = await blogApi.get(`/${id}`);
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 创建博客
@@ -109,7 +109,7 @@ export const blogService = {
           'Content-Type': 'multipart/form-data',
         },
       });
-      return response.data.data;
+      return response.data?.data || response.data || response;
     } else {
       // 没有图片时使用 JSON
       const { featuredImage, ...jsonData } = data;
@@ -118,7 +118,7 @@ export const blogService = {
           'Content-Type': 'application/json',
         },
       });
-      return response.data.data;
+      return response.data?.data || response.data || response;
     }
   },
 
@@ -143,7 +143,7 @@ export const blogService = {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 删除博客
@@ -154,25 +154,25 @@ export const blogService = {
   // 点赞博客
   async likeBlog(id: string): Promise<{ likes: number }> {
     const response = await blogApi.post(`/${id}/like`);
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 获取分类列表
   async getCategories(): Promise<string[]> {
     const response = await blogApi.get('/meta/categories');
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 获取标签云
   async getTagCloud(): Promise<TagCloudItem[]> {
     const response = await blogApi.get('/meta/tags');
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 
   // 获取博客统计
   async getBlogStats(): Promise<BlogStats> {
     const response = await blogApi.get('/meta/stats');
-    return response.data.data;
+    return response.data?.data || response.data || response;
   },
 };
 

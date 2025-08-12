@@ -87,13 +87,15 @@ class AuthService {
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await api.post('/auth/register', data);
     
-    if (response.data.success) {
+    const responseData = response.data || response;
+    if (responseData && responseData.success) {
       // 保存token和用户信息
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const authData = responseData.data || responseData;
+      localStorage.setItem('token', authData.token);
+      localStorage.setItem('user', JSON.stringify(authData.user));
     }
     
-    return response.data;
+    return response.data || response;
   }
 
   // 用户登录
@@ -101,13 +103,15 @@ class AuthService {
     console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
     const response = await api.post('/auth/login', data);
     
-    if (response.data.success) {
+    const responseData = response.data || response;
+    if (responseData && responseData.success) {
       // 保存token和用户信息
-      localStorage.setItem('token', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const authData = responseData.data || responseData;
+      localStorage.setItem('token', authData.token);
+      localStorage.setItem('user', JSON.stringify(authData.user));
     }
     
-    return response.data;
+    return response.data || response;
   }
 
   // 用户登出
@@ -127,24 +131,28 @@ class AuthService {
   async getProfile(): Promise<{ success: boolean; data: { user: User } }> {
     const response = await api.get('/auth/profile');
     
-    if (response.data.success) {
+    const responseData = response.data || response;
+    if (responseData && responseData.success) {
       // 更新本地存储的用户信息
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const userData = responseData.data || responseData;
+      localStorage.setItem('user', JSON.stringify(userData.user));
     }
     
-    return response.data;
+    return response.data || response;
   }
 
   // 更新用户资料
   async updateProfile(data: Partial<User>): Promise<{ success: boolean; message: string; data: { user: User } }> {
     const response = await api.put('/auth/profile', data);
     
-    if (response.data.success) {
+    const responseData = response.data || response;
+    if (responseData && responseData.success) {
       // 更新本地存储的用户信息
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      const userData = responseData.data || responseData;
+      localStorage.setItem('user', JSON.stringify(userData.user));
     }
     
-    return response.data;
+    return response.data || response;
   }
 
   // 修改密码
@@ -153,13 +161,13 @@ class AuthService {
       currentPassword,
       newPassword
     });
-    return response.data;
+    return response.data || response;
   }
 
   // 验证token
   async verifyToken(): Promise<{ success: boolean; data: { user: User } }> {
     const response = await api.get('/auth/verify');
-    return response.data;
+    return response.data || response;
   }
 
   // 获取本地存储的token
@@ -195,31 +203,31 @@ class AuthService {
     isActive?: boolean;
   } = {}): Promise<UserListResponse> {
     const response = await api.get('/auth/admin/users', { params });
-    return response.data;
+    return response.data || response;
   }
 
   // 更新用户状态（管理员）
   async updateUserStatus(userId: string, isActive: boolean): Promise<{ success: boolean; message: string }> {
     const response = await api.put(`/auth/admin/users/${userId}/status`, { isActive });
-    return response.data;
+    return response.data || response;
   }
 
   // 更新用户角色（管理员）
   async updateUserRole(userId: string, role: 'user' | 'admin'): Promise<{ success: boolean; message: string }> {
     const response = await api.put(`/auth/admin/users/${userId}/role`, { role });
-    return response.data;
+    return response.data || response;
   }
 
   // 删除用户（管理员）
   async deleteUser(userId: string): Promise<{ success: boolean; message: string }> {
     const response = await api.delete(`/auth/admin/users/${userId}`);
-    return response.data;
+    return response.data || response;
   }
 
   // 获取用户统计信息（管理员）
   async getUserStats(): Promise<UserStatsResponse> {
     const response = await api.get('/auth/admin/stats');
-    return response.data;
+    return response.data || response;
   }
 }
 
