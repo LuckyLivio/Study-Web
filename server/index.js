@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 
 // 安全中间件
 app.use(helmet());
@@ -18,13 +18,30 @@ app.use(morgan('combined'));
 // 跨域配置
 app.use(cors({
   origin: [
-    process.env.CLIENT_URL || 'https://study-web-r3ee.onrender.com',
-    'https://study-web-r3ee.onrender.com',
+    process.env.CLIENT_URL || 'http://localhost:3001',
+    'http://localhost:3005',
+    'http://localhost:3006',
+    'http://localhost:3007',
     'http://livio.wang',
-    'https://livio.wang'
+    'https://livio.wang',
+    'https://study-web-r3ee.onrender.com'
   ],
   credentials: true
 }));
+
+// 添加额外的CORS头部支持
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Cache-Control,Pragma');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // 请求限制
 const limiter = rateLimit({

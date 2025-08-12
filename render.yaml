@@ -33,4 +33,18 @@ services:
         value: ./uploads
       # 前端地址 - 部署后需要更新为实际域名
       - key: CLIENT_URL
+        value: https://study-web-r3ee.onrender.com
+      # API配置
+      - key: REACT_APP_API_URL
+        value: https://study-web-r3ee.onrender.com/api
+      # DeepSeek AI配置
+      - key: DEEPSEEK_API_KEY
         sync: false
+      - key: DEEPSEEK_BASE_URL
+        value: https://api.deepseek.com
+      - key: REACT_APP_DEEPSEEK_API_KEY
+        sync: false
+      - key: REACT_APP_DEEPSEEK_BASE_URL
+        value: https://api.deepseek.com
+      - key: REACT_APP_DEEPSEEK_MODEL
+        value: deepseek-chat

@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://study-web-r3ee.onrender.com/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? 'https://study-web-r3ee.onrender.com/api' : 'http://localhost:5000/api');
 console.log('API_BASE_URL:', API_BASE_URL);
 
 // 用户数据类型
