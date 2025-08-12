@@ -44,8 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const response = await authService.verifyToken();
-        if (response.success) {
-          setUser(response.data.user);
+        if (response.data && response.data.success) {
+          setUser(response.data.data.user);
         } else {
           localStorage.removeItem('token');
         }
@@ -66,8 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('token', response.data.token);
     } catch (error: any) {
       // 重新抛出错误，让调用方能够获取具体的错误信息
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
+      if (error.data?.message) {
+        throw new Error(error.data.message);
       }
       throw new Error(error.message || '登录失败，请稍后重试');
     }
