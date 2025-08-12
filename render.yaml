@@ -14,8 +14,7 @@ services:
         value: false
       - key: GENERATE_SOURCEMAP
         value: false
-      - key: NODE_OPTIONS
-        value: --max-old-space-size=3072
+
       - key: NODE_ENV
         value: production
       - key: SKIP_PREFLIGHT_CHECK
