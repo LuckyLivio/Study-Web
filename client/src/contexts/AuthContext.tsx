@@ -44,8 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         const response = await authService.verifyToken();
-        if (response.data && response.data.success) {
-          setUser(response.data.data.user);
+        if (response.success) {
+          setUser(response.data.user);
         } else {
           localStorage.removeItem('token');
         }
