@@ -14,8 +14,23 @@ services:
         value: false
       - key: GENERATE_SOURCEMAP
         value: false
-
       - key: NODE_ENV
         value: production
       - key: SKIP_PREFLIGHT_CHECK
         value: true
+      # 数据库配置 - 需要在Render控制台中设置实际值
+      - key: MONGODB_URI
+        sync: false
+      # JWT配置 - 需要在Render控制台中设置实际值
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRE
+        value: 7d
+      # 文件上传配置
+      - key: MAX_FILE_SIZE
+        value: 10485760
+      - key: UPLOAD_PATH
+        value: ./uploads
+      # 前端地址 - 部署后需要更新为实际域名
+      - key: CLIENT_URL
+        sync: false

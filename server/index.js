@@ -42,6 +42,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // 静态文件服务
 app.use('/uploads', express.static('uploads'));
 
+// 提供React构建后的静态文件
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../client/build')));
+
 // 数据库连接
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/student_website', {
   useNewUrlParser: true,
@@ -75,9 +79,14 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404处理
-app.use('*', (req, res) => {
-  res.status(404).json({ message: '接口不存在' });
+// 处理React Router的前端路由
+app.get('*', (req, res) => {
+  // 如果请求的是API路径，返回404
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ message: '接口不存在' });
+  }
+  // 否则返回React应用的index.html
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 // 错误处理中间件
