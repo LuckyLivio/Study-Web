@@ -98,16 +98,26 @@ class AuthService {
 
   // 用户登录
   async login(data: LoginData): Promise<AuthResponse> {
-    console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
-    const response: AuthResponse = await api.post('/auth/login', data);
+    console.log('AuthService: 开始登录请求');
+    console.log('AuthService: API_BASE_URL:', API_BASE_URL);
+    console.log('AuthService: 登录数据:', { email: data.email, password: '***' });
     
-    if (response.success) {
-      // 保存token和用户信息
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    try {
+      const response: AuthResponse = await api.post('/auth/login', data);
+      console.log('AuthService: 收到响应:', response);
+      
+      if (response.success) {
+        // 保存token和用户信息
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        console.log('AuthService: 登录成功，token已保存');
+      }
+      
+      return response;
+    } catch (error) {
+      console.error('AuthService: 登录请求失败:', error);
+      throw error;
     }
-    
-    return response;
   }
 
   // 用户登出
