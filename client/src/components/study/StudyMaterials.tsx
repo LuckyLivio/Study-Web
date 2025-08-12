@@ -32,6 +32,15 @@ const StudyMaterials: React.FC<StudyMaterialsProps> = ({ searchTerm }) => {
   const fetchMaterials = async () => {
     try {
       setLoading(true);
+      
+      // 检查是否有token
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('用户未登录，无法获取学习资料');
+        setMaterials([]);
+        return;
+      }
+      
       const response = await studyMaterialsApi.getMaterials({
         page: currentPage,
         limit: 12,
@@ -42,8 +51,14 @@ const StudyMaterials: React.FC<StudyMaterialsProps> = ({ searchTerm }) => {
       if (response.pagination) {
         setTotalPages(response.pagination.pages);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('获取资料失败:', error);
+      
+      // 如果是认证错误，清空数据
+      if (error?.data?.error === 'NETWORK_ERROR' || error?.response?.status === 401) {
+        console.log('认证失败，用户可能需要重新登录');
+        setMaterials([]);
+      }
     } finally {
       setLoading(false);
     }

@@ -69,6 +69,7 @@ class PomodoroService {
     get: (url: string, config?: any) => api.get(`/pomodoro${url}`, config),
     post: (url: string, data?: any, config?: any) => api.post(`/pomodoro${url}`, data, config),
     put: (url: string, data?: any, config?: any) => api.put(`/pomodoro${url}`, data, config),
+    patch: (url: string, data?: any, config?: any) => api.patch(`/pomodoro${url}`, data, config),
     delete: (url: string, config?: any) => api.delete(`/pomodoro${url}`, config),
   };
 
@@ -104,7 +105,7 @@ class PomodoroService {
     pausedTime?: number;
   }): Promise<ApiResponse<PomodoroSession>> {
     try {
-      const response = await this.apiClient.put(`/sessions/${id}/complete`, data);
+      const response = await this.apiClient.patch(`/sessions/${id}/complete`, data);
       return response.data || response;
     } catch (error: any) {
       throw new Error(error.data?.message || '完成会话失败');
@@ -114,7 +115,7 @@ class PomodoroService {
   // 取消番茄钟会话
   async cancelSession(id: string, reason?: string): Promise<ApiResponse<PomodoroSession>> {
     try {
-      const response = await this.apiClient.put(`/sessions/${id}/cancel`, { reason });
+      const response = await this.apiClient.patch(`/sessions/${id}/cancel`, { reason });
       return response.data || response;
     } catch (error: any) {
       throw new Error(error.data?.message || '取消会话失败');
