@@ -78,14 +78,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
-            <Route 
-              path="/links" 
-              element={
-                <ProtectedRoute>
-                  <LinksPage />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/links" element={<LinksPage />} />
             <Route 
               path="/tools" 
               element={
