@@ -20,8 +20,8 @@ const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="min-h-screen bg-gray-50">
           <Navigation />
           <Suspense fallback={
@@ -127,8 +127,8 @@ function App() {
             </Routes>
           </Suspense>
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
