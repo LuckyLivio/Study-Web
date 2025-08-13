@@ -4,7 +4,129 @@ const Portfolio = require('../models/Portfolio');
 const { upload, handleUploadError, cleanupFiles, deleteFile, getFileUrl } = require('../middleware/upload');
 const { authenticate } = require('../middleware/auth');
 
-// 所有作品集路由都需要认证
+// 公开接口 - 获取已发布的作品列表
+router.get('/public', async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 12,
+      category,
+      search,
+      featured,
+      sort = 'createdAt',
+      order = 'desc'
+    } = req.query;
+
+    // 构建查询条件 - 只查询已发布的作品
+    const query = { isPublished: true };
+    
+    if (category && category !== '全部') {
+      query.category = category;
+    }
+    
+    if (featured !== undefined) {
+      query.featured = featured === 'true';
+    }
+    
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    // 构建排序
+    const sortObj = {};
+    sortObj[sort] = order === 'desc' ? -1 : 1;
+    
+    // 如果按相关性排序（搜索时）
+    if (search) {
+      sortObj.score = { $meta: 'textScore' };
+    }
+
+    // 分页计算
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // 执行查询
+    const [portfolios, total] = await Promise.all([
+      Portfolio.find(query)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
+      Portfolio.countDocuments(query)
+    ]);
+
+    // 处理图片URL
+    const processedPortfolios = portfolios.map(portfolio => ({
+      ...portfolio,
+      images: portfolio.images ? portfolio.images.map(img => ({
+        ...img,
+        url: getFileUrl(img.filename)
+      })) : []
+    }));
+
+    res.json({
+      success: true,
+      data: processedPortfolios,
+      pagination: {
+        current: pageNum,
+        pageSize: limitNum,
+        total,
+        pages: Math.ceil(total / limitNum)
+      }
+    });
+  } catch (error) {
+    console.error('获取公开作品列表失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取作品列表失败'
+    });
+  }
+});
+
+// 公开接口 - 获取单个已发布作品详情
+router.get('/public/:id', async (req, res) => {
+  try {
+    const portfolio = await Portfolio.findOne({
+      _id: req.params.id,
+      isPublished: true
+    }).lean();
+
+    if (!portfolio) {
+      return res.status(404).json({
+        success: false,
+        message: '作品不存在或未发布'
+      });
+    }
+
+    // 处理图片URL
+    const processedPortfolio = {
+      ...portfolio,
+      images: portfolio.images ? portfolio.images.map(img => ({
+        ...img,
+        url: getFileUrl(img.filename)
+      })) : []
+    };
+
+    // 增加浏览量
+    await Portfolio.findByIdAndUpdate(req.params.id, {
+      $inc: { views: 1 }
+    });
+
+    res.json({
+      success: true,
+      data: processedPortfolio
+    });
+  } catch (error) {
+    console.error('获取作品详情失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取作品详情失败'
+    });
+  }
+});
+
+// 管理员接口 - 需要认证
 router.use(authenticate);
 
 // 获取作品列表

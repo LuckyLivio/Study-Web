@@ -167,6 +167,59 @@ const studyNoteController = {
       console.error('删除笔记失败:', error);
       res.status(500).json({ success: false, message: '服务器错误' });
     }
+  },
+
+  // 获取公开笔记
+  async getPublicNotes(req, res) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search = '',
+        subject = '',
+        category = '',
+        difficulty = ''
+      } = req.query;
+
+      const query = {
+        isPublic: true // 只查询公开的笔记
+      };
+      
+      // 搜索条件
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { content: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search, 'i')] } }
+        ];
+      }
+      
+      if (subject) query.subject = subject;
+      if (category) query.category = category;
+      if (difficulty) query.difficulty = difficulty;
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const total = await StudyNote.countDocuments(query);
+      
+      const notes = await StudyNote.find(query)
+        .select('-attachments') // 不返回附件信息
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+      res.json({
+        success: true,
+        data: notes,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / parseInt(limit)),
+          total
+        }
+      });
+    } catch (error) {
+      console.error('获取公开笔记失败:', error);
+      res.status(500).json({ success: false, message: '服务器错误' });
+    }
   }
 };
 
@@ -303,6 +356,58 @@ const studyMaterialController = {
       res.json({ success: true, message: '资料删除成功' });
     } catch (error) {
       console.error('删除资料失败:', error);
+      res.status(500).json({ success: false, message: '服务器错误' });
+    }
+  },
+
+  // 获取公开资料
+  async getPublicMaterials(req, res) {
+    try {
+      const {
+        page = 1,
+        limit = 12,
+        search = '',
+        subject = '',
+        category = '',
+        difficulty = ''
+      } = req.query;
+
+      const query = {
+        isPublic: true // 只查询公开的资料
+      };
+      
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } },
+          { tags: { $in: [new RegExp(search, 'i')] } }
+        ];
+      }
+      
+      if (subject) query.subject = subject;
+      if (category) query.category = category;
+      if (difficulty) query.difficulty = difficulty;
+
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      const total = await StudyMaterial.countDocuments(query);
+      
+      const materials = await StudyMaterial.find(query)
+        .select('-fileInfo.path') // 不返回文件路径信息
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+      res.json({
+        success: true,
+        data: materials,
+        pagination: {
+          current: parseInt(page),
+          pages: Math.ceil(total / parseInt(limit)),
+          total
+        }
+      });
+    } catch (error) {
+      console.error('获取公开资料失败:', error);
       res.status(500).json({ success: false, message: '服务器错误' });
     }
   }

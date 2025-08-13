@@ -10,6 +10,7 @@
     "client": "cd client && npm start",
     "build": "cd client && CI=false NODE_OPTIONS=\"--max-old-space-size=2048\" npm run build",
     "build:render": "cd client && npm install --legacy-peer-deps --no-audit --no-fund && NODE_ENV=production CI=false npm run build",
+    "init-data": "cd server && npm run init-data",
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
     "install:all": "npm run install:client && npm run install:server",
