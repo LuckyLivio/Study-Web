@@ -30,6 +30,7 @@ const PendingProjects: React.FC = () => {
   const [filter, setFilter] = useState<'all' | 'pending' | 'in-progress' | 'completed'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [viewingProject, setViewingProject] = useState<Project | null>(null);
 
   // 模拟项目数据
   const mockProjects: Project[] = [
@@ -146,6 +147,24 @@ const PendingProjects: React.FC = () => {
     setProjects(projects.filter(project => project.id !== id));
   };
 
+  const handleAddProject = (newProject: Omit<Project, 'id'>) => {
+    const project: Project = {
+      ...newProject,
+      id: Date.now().toString()
+    };
+    setProjects([...projects, project]);
+    setShowAddForm(false);
+  };
+
+  const handleUpdateProject = (updatedProject: Project) => {
+    setProjects(projects.map(p => p.id === updatedProject.id ? updatedProject : p));
+    setEditingProject(null);
+  };
+
+  const handleViewProject = (project: Project) => {
+    setViewingProject(project);
+  };
+
   const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
     <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden">
       {/* 项目截图 */}
@@ -224,7 +243,10 @@ const PendingProjects: React.FC = () => {
 
         {/* 操作按钮 */}
         <div className="flex space-x-2">
-          <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center">
+          <button 
+            onClick={() => handleViewProject(project)}
+            className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+          >
             <EyeIcon className="h-4 w-4 mr-2" />
             查看详情
           </button>
@@ -365,6 +387,332 @@ const PendingProjects: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 添加项目表单模态框 */}
+      {showAddForm && (
+        <ProjectFormModal
+          onClose={() => setShowAddForm(false)}
+          onSubmit={handleAddProject}
+        />
+      )}
+
+      {/* 编辑项目表单模态框 */}
+      {editingProject && (
+        <ProjectFormModal
+          project={editingProject}
+          onClose={() => setEditingProject(null)}
+          onSubmit={(project: Project | Omit<Project, "id">) => {
+            if ('id' in project) {
+              handleUpdateProject(project as Project);
+            }
+          }}
+        />
+      )}
+
+      {/* 项目详情模态框 */}
+      {viewingProject && (
+        <ProjectDetailModal
+          project={viewingProject}
+          onClose={() => setViewingProject(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// 项目表单模态框组件
+const ProjectFormModal: React.FC<{
+  project?: Project;
+  onClose: () => void;
+  onSubmit: (project: Project | Omit<Project, 'id'>) => void;
+}> = ({ project, onClose, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    title: project?.title || '',
+    description: project?.description || '',
+    status: project?.status || 'pending' as Project['status'],
+    progress: project?.progress || 0,
+    startDate: project?.startDate || '',
+    endDate: project?.endDate || '',
+    tags: project?.tags.join(', ') || '',
+    priority: project?.priority || 'medium' as Project['priority']
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const projectData = {
+      ...formData,
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+    };
+    
+    if (project) {
+      onSubmit({ ...projectData, id: project.id });
+    } else {
+      onSubmit(projectData);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{project ? '编辑项目' : '添加项目'}</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">项目标题</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">项目描述</label>
+            <textarea
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">状态</label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as Project['status'] })}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="pending">待定</option>
+                <option value="in-progress">进行中</option>
+                <option value="completed">已完成</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+              <select
+                value={formData.priority}
+                onChange={(e) => setFormData({ ...formData, priority: e.target.value as Project['priority'] })}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="low">低</option>
+                <option value="medium">中</option>
+                <option value="high">高</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">进度 ({formData.progress}%)</label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={formData.progress}
+              onChange={(e) => setFormData({ ...formData, progress: parseInt(e.target.value) })}
+              className="w-full"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">开始日期</label>
+              <input
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">结束日期</label>
+              <input
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">标签 (用逗号分隔)</label>
+            <input
+              type="text"
+              value={formData.tags}
+              onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="React, Node.js, MongoDB"
+            />
+          </div>
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+            >
+              取消
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              {project ? '更新' : '添加'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// 项目详情模态框组件
+const ProjectDetailModal: React.FC<{
+  project: Project;
+  onClose: () => void;
+}> = ({ project, onClose }) => {
+  const getStatusIcon = (status: Project['status']) => {
+    switch (status) {
+      case 'pending':
+        return <ClockIcon className="h-5 w-5 text-yellow-500" />;
+      case 'in-progress':
+        return <PlayIcon className="h-5 w-5 text-blue-500" />;
+      case 'completed':
+        return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
+    }
+  };
+
+  const getStatusText = (status: Project['status']) => {
+    switch (status) {
+      case 'pending':
+        return '待定';
+      case 'in-progress':
+        return '进行中';
+      case 'completed':
+        return '已完成';
+    }
+  };
+
+  const getPriorityColor = (priority: Project['priority']) => {
+    switch (priority) {
+      case 'low':
+        return 'bg-green-100 text-green-800';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'high':
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
+  const getPriorityText = (priority: Project['priority']) => {
+    switch (priority) {
+      case 'low':
+        return '低';
+      case 'medium':
+        return '中';
+      case 'high':
+        return '高';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">{project.title}</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {project.screenshot && (
+          <div className="mb-6">
+            <img
+              src={project.screenshot}
+              alt={project.title}
+              className="w-full h-48 object-cover rounded-lg"
+            />
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">项目描述</h3>
+            <p className="text-gray-600">{project.description}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-1">状态</h4>
+              <div className="flex items-center">
+                {getStatusIcon(project.status)}
+                <span className="ml-2 text-gray-600">{getStatusText(project.status)}</span>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-900 mb-1">优先级</h4>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(project.priority)}`}>
+                {getPriorityText(project.priority)}优先级
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">进度</h4>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${project.progress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">{project.progress}% 完成</p>
+          </div>
+
+          {(project.startDate || project.endDate) && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-1">时间安排</h4>
+              <div className="flex items-center text-gray-600">
+                <CalendarIcon className="h-4 w-4 mr-1" />
+                <span>{project.startDate}</span>
+                {project.endDate && (
+                  <>
+                    <span className="mx-2">-</span>
+                    <span>{project.endDate}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {project.tags.length > 0 && (
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">技术标签</h4>
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end pt-6">
+          <button
+            onClick={onClose}
+            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            关闭
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
