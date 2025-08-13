@@ -31,7 +31,7 @@ class DeepSeekAPI {
 
   constructor() {
     this.config = {
-      apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY || 'sk-0e71b48c86354b95928f1449fde3e598',
+      apiKey: process.env.REACT_APP_DEEPSEEK_API_KEY || '',
       baseUrl: process.env.REACT_APP_DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
       model: process.env.REACT_APP_DEEPSEEK_MODEL || 'deepseek-chat'
     };
