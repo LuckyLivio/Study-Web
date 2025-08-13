@@ -42,6 +42,55 @@ const upload = multer({
   }
 });
 
+// ==================== 公开接口 ====================
+
+// 获取公开的学习笔记
+router.get('/notes/public', async (req, res) => {
+  try {
+    const { studyNoteController } = require('../controllers/studyController');
+    // 创建一个临时的req对象，不包含用户信息
+    const publicReq = {
+      ...req,
+      query: {
+        ...req.query,
+        isPublic: 'true' // 只获取公开的笔记
+      }
+    };
+    
+    // 调用控制器方法，但不验证用户
+    await studyNoteController.getPublicNotes(publicReq, res);
+  } catch (error) {
+    console.error('获取公开学习笔记失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取学习笔记失败'
+    });
+  }
+});
+
+// 获取公开的学习资料
+router.get('/materials/public', async (req, res) => {
+  try {
+    const { studyMaterialController } = require('../controllers/studyController');
+    // 创建一个临时的req对象
+    const publicReq = {
+      ...req,
+      query: {
+        ...req.query,
+        isPublic: 'true' // 只获取公开的资料
+      }
+    };
+    
+    await studyMaterialController.getPublicMaterials(publicReq, res);
+  } catch (error) {
+    console.error('获取公开学习资料失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取学习资料失败'
+    });
+  }
+});
+
 // ==================== 学习笔记相关路由 ====================
 
 // 所有学习相关路由都需要认证
