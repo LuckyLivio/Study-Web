@@ -19,6 +19,7 @@ jspm_packages/
 
 # 构建输出
 dist/
+client/build/
 
 
 # 上传文件
